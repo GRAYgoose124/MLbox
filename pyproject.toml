@@ -14,6 +14,10 @@ scipy = "^1.9.3"
 ftfy = "^6.1.1"
 nltk = "^3.7"
 matplotlib = "^3.6.2"
+sentence-transformers = "^2.2.2"
+datasets = "^2.6.1"
+clip = {git = "https://github.com/openai/CLIP.git"}
+deepspeed = "^0.7.4"
 
 
 [build-system]
@@ -23,3 +27,5 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.scripts]
 diffusion-box = "diffusion_box.__main__:main"
 diffuser = "diffusion_box.diffuser:main"
+sentrans = "diffusion_box.sandbox:main"
+qawi= "diffusion_box.qawi:main"

@@ -4,3 +4,10 @@ __pycache__/
 .ipynb_checkpoints/
 output/
 prompts/
+build/
+downloaded_embedding/
+diffusers/
+*.egg-info/
+qawi.py
+sandbox.py
+dream.sh

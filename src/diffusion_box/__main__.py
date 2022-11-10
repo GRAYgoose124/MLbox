@@ -4,7 +4,7 @@ import os
 import matplotlib.pyplot as plt
 
 
-from diffusion_box.utils import hf_login, image_grid
+from diffusion_box.utils import hf_login, image_grid, save_prompt
 from diffusion_box.pipegen import get_diffusion_pipe
 
 
@@ -18,7 +18,6 @@ def argparser():
     parser.add_argument("--login-only", action="store_true", default=False, help="Set token only and quit.")
     return parser.parse_args()
 
-
 def prompt(text, amount=1, show=False, pipe=None):
     """Prompt the model with a text"""
     if pipe is None:
@@ -28,6 +27,8 @@ def prompt(text, amount=1, show=False, pipe=None):
     # One image at a time, for low-VRAM GPUs :(
     for _ in range(amount):
         images.append(pipe(text, height=512, width=512).images[0])
+        save_prompt(text, images[-1])
+
 
     if show:
         # divide the images into a grid rows x cols
@@ -35,7 +36,6 @@ def prompt(text, amount=1, show=False, pipe=None):
 
         plt.show(images)
 
-    save_images(text, images)
 
 
 def interactive_prompt(show=False, pipe=None):
