@@ -20,12 +20,14 @@ clip = {git = "https://github.com/openai/CLIP.git"}
 deepspeed = "^0.7.4"
 
 
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.17.1"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-diffusion-box = "diffusion_box.__main__:main"
-diffuser = "diffusion_box.diffuser:main"
-sentrans = "diffusion_box.sandbox:main"
-qawi= "diffusion_box.qawi:main"
+dfusn = "diffusion_box.__main__:main"
+# sentrans = "diffusion_box.sandbox:main"
+# qawi= "diffusion_box.qawi:main"

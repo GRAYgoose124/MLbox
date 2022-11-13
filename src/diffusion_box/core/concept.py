@@ -1,23 +1,34 @@
 import os
 import torch
-from transformers import CLIPTextModel, CLIPTokenizer
 
 
-def load_concept(model_id="CompVis/stable-diffusion-v1-4", repo_id="sd-concepts-library/cat-toy"):
-    embed_path = load_embed(repo_id=repo_id)
-    tokenizer, text_encoder = init_clip(model_id=model_id)
+def load_concepts(tokenizer, text_encoder, repo_list=None):
+    new_tokens = []
 
+    for repo_id in repo_list:
+        new_tokens.append(load_concept(tokenizer, text_encoder, repo_id))
+    
+    return new_tokens
+
+
+def load_concept(tokenizer, text_encoder, repo_id=None):
+    library_prefix = "sd-concepts-library"
+    if not repo_id.startswith(library_prefix):
+        repo_id = f"{library_prefix}/{repo_id}"
+
+    embed_path, token = load_embed(repo_id=repo_id)
     load_learned_embed_in_clip(embed_path, text_encoder, tokenizer)
 
-    return text_encoder, tokenizer
+    return token
 
 
+# TODO, multiconcepts
 def load_embed(repo_id="sd-concepts-library/kuvshinov"):
     from huggingface_hub import hf_hub_download
 
     #@markdown (Optional) in case you have a `learned_embeds.bin` file and not a `repo_id`, add the path to `learned_embeds.bin` to the `embeds_url` variable 
     embeds_url = "" #Add the URL or path to a learned_embeds.bin file in case you have one
-    placeholder_token_string = "" #Add what is the token string in case you are uploading your own embed
+    token = None
 
     downloaded_embedding_folder = "./downloaded_embedding"
     if not os.path.exists(downloaded_embedding_folder):
@@ -26,30 +37,28 @@ def load_embed(repo_id="sd-concepts-library/kuvshinov"):
     if(not embeds_url):
         embeds_path = hf_hub_download(repo_id=repo_id, filename="learned_embeds.bin")
         token_path = hf_hub_download(repo_id=repo_id, filename="token_identifier.txt")
+        # read the token from the file
+        with open(token_path, "r") as f:
+            token = f.read()
+            token = token[1:-1] # remove the brackets
+
+        # use the token to make a subdirectory in the downloaded_embedding_folder
+        token_dir = os.path.join(downloaded_embedding_folder, token)
+        if not os.path.exists(token_dir):
+            os.mkdir(token_dir)
+        downloaded_embedding_folder = token_dir
+    
         os.system(f"cp {embeds_path} {downloaded_embedding_folder}")
         os.system(f"cp {token_path} {downloaded_embedding_folder}")
-
-        with open(f'{downloaded_embedding_folder}/token_identifier.txt', 'r') as file:
-            placeholder_token_string = file.read()
     else:
         os.system(f"wget -q -O {downloaded_embedding_folder}/learned_embeds.bin {embeds_url}")
 
     learned_embeds_path = f"{downloaded_embedding_folder}/learned_embeds.bin"
 
-    return learned_embeds_path
+    return learned_embeds_path, token
 
 
-def init_clip(model_id):
-    #@title Set up the Tokenizer and the Text Encoder
-    tokenizer = CLIPTokenizer.from_pretrained(
-        model_id,
-        subfolder="tokenizer",
-    )
-    text_encoder = CLIPTextModel.from_pretrained(
-        model_id, subfolder="text_encoder", torch_dtype=torch.float16
-    )
 
-    return tokenizer, text_encoder
 
 
 def load_learned_embed_in_clip(learned_embeds_path, text_encoder, tokenizer, token=None):

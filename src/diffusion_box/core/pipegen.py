@@ -1,15 +1,34 @@
 import os
+from numpy import isin
 import torch
 
-from diffusion_box.concept import load_concept
+from transformers import CLIPTextModel, CLIPTokenizer
+
+from diffusion_box.core.concept import  load_concept
 from diffusion_box.utils import hf_login, save_prompt
 
 
+def init_clip(model_id):
+    #@title Set up the Tokenizer and the Text Encoder
+    tokenizer = CLIPTokenizer.from_pretrained(
+        model_id,
+        subfolder="tokenizer",
+    )
+    text_encoder = CLIPTextModel.from_pretrained(
+        model_id, subfolder="text_encoder", torch_dtype=torch.float16
+    )
+
+    return tokenizer, text_encoder
+
 def get_diffusion_pipe(concept_repo=None, model_id="CompVis/stable-diffusion-v1-4", nsfw=False):
     from diffusers import StableDiffusionPipeline
-
-    if concept_repo is not None:
-        text_encoder, tokenizer = load_concept(model_id=model_id, repo_id=concept_repo)
+    tokenizer, text_encoder = init_clip(model_id=model_id)
+    
+    if isinstance(concept_repo, str):
+        load_concept(tokenizer, text_encoder, repo_id=concept_repo)
+    elif isinstance(concept_repo, list):
+        for repo in concept_repo:
+            load_concept(tokenizer, text_encoder, repo_id=repo)
 
     # make sure you're logged in with `huggingface-cli login`
     pipe = StableDiffusionPipeline.from_pretrained(
@@ -30,7 +49,8 @@ def get_diffusion_pipe(concept_repo=None, model_id="CompVis/stable-diffusion-v1-
     return pipe
 
 
-def diffuser(text=None, prompts_file=None, dataset=None, bounds=(0, 100), concept_repo=None, append="", **kwargs):
+# TODO dynamically load concepts from <> and gen pipe, cache learning embeds, etc.
+def diffuser(text=None, amount=1, prompts_file=None, dataset=None, bounds=(0, 100), concept_repo=None, append="", **kwargs):
     if prompts_file is not None:
         f = open(prompts_file, "r")
     elif dataset is not None:
@@ -39,7 +59,7 @@ def diffuser(text=None, prompts_file=None, dataset=None, bounds=(0, 100), concep
         dataset = load_dataset(dataset)
         f = dataset['train']['Prompt'][bounds[0]:bounds[1]]
     elif text:
-        f = [text]
+        f = [text] * amount
 
     pipe = get_diffusion_pipe(concept_repo=concept_repo, nsfw=True)
 

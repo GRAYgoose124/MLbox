@@ -1,6 +1,8 @@
 # Diffusion Box
+A test playground for Stable Diffusion, personal utilities to make life easier.
 
-A test playground for Stable Diffusion.
+Uses many examples and code from https://huggingface.co/.
+Probably inherits CreativeML Open RAIL-M licensing.
 
 ## Installing
 Clone the repo, then `poetry install`, preferably inside a venv.
