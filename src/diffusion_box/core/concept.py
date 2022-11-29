@@ -35,8 +35,9 @@ def load_embed(repo_id="sd-concepts-library/kuvshinov"):
         os.mkdir(downloaded_embedding_folder)
         
     if(not embeds_url):
-        embeds_path = hf_hub_download(repo_id=repo_id, filename="learned_embeds.bin")
+        embeds_path = hf_hub_download(repo_id=repo_id, repo_type="model", filename="learned_embeds.bin")
         token_path = hf_hub_download(repo_id=repo_id, filename="token_identifier.txt")
+
         # read the token from the file
         with open(token_path, "r") as f:
             token = f.read()

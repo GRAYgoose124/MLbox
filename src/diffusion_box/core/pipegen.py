@@ -50,6 +50,7 @@ def get_diffusion_pipe(concept_repo=None, model_id="CompVis/stable-diffusion-v1-
 
 
 # TODO dynamically load concepts from <> and gen pipe, cache learning embeds, etc.
+# TODO: Rename to run_diffusion_pipe
 def diffuser(text=None, amount=1, prompts_file=None, dataset=None, bounds=(0, 100), concept_repo=None, append="", **kwargs):
     if prompts_file is not None:
         f = open(prompts_file, "r")

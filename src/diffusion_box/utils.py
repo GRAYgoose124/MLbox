@@ -40,12 +40,12 @@ def image_grid(imgs):
 
 def save_prompt(prompt, image):
     outdir = os.getcwd() + "/output"
-    index_path = outdir + "/index.json"
+    # index_path = outdir + "/index.json"
 
-    if not os.path.exists(outdir):
-        os.mkdir(outdir)
-        with open(index_path, "w") as f:
-            json.dump({}, f)
+    # if not os.path.exists(outdir):
+    #     os.mkdir(outdir)
+    #     with open(index_path, "w") as f:
+    #         json.dump({}, f)
 
     try:
         letters = "".join(word[0] for word in prompt.split(' '))
@@ -56,18 +56,18 @@ def save_prompt(prompt, image):
     # Save the image
     image.save(filename)
 
-    # Save the prompt and filename to the index.json
-    with open(index_path, "a+") as f:
-        try:
-            index = json.load(f)
-        except json.decoder.JSONDecodeError:
-            index = {}
+    # # Save the prompt and filename to the index.json
+    # with open(index_path, "a+") as f:
+    #     try:
+    #         index = json.load(f)
+    #     except json.decoder.JSONDecodeError:
+    #         index = {}
 
-        if prompt not in index:
-            index[prompt] = [filename]
-        else:
-            index[prompt].append(filename)
+    #     if prompt not in index:
+    #         index[prompt] = [filename]
+    #     else:
+    #         index[prompt].append(filename)
 
-        json.dump(index, f)
+    #     json.dump(index, f)
 
         

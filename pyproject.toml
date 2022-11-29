@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "diffusion_box", from = "src"}]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "3.10"
 diffusers = {extras = ["torch"], version = "^0.7.2"}
 transformers = "^4.24.0"
 scipy = "^1.9.3"

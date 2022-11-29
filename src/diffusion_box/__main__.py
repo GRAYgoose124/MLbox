@@ -27,8 +27,12 @@ def argparser():
 
     if len(args.concept) == 0 and args.text is not None:
         print("Auto loading concepts... (--text beta feature)")
+        print("\t If this fails, try specifying concepts with --concept, or ensure <X> is whitespace separated.")
+        # get all X for <X> in text
+        concepts = [x for x in args.text.split() if x.startswith("<") and x.endswith(">")]
         # pull all words surrounded by <> and load them as concepts
-        args.concept = [word[1:-1] for word in args.text.split() if word.startswith("<") and word.endswith(">")]
+        args.concept = [word[1:-1] for word in args.text.split(' ') if word.startswith("<") and word.endswith(">")]
+        
         print(f"\tconcepts to load: {args.concept}")
 
     if args.ds is not None:

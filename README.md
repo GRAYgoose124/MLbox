@@ -1,5 +1,5 @@
 # Diffusion Box
-A test playground for Stable Diffusion, personal utilities to make life easier.
+A personal playground for Stable Diffusion with Python scripts to make life easier.
 
 Uses many examples and code from https://huggingface.co/.
 Probably inherits CreativeML Open RAIL-M licensing.
