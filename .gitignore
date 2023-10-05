@@ -11,3 +11,4 @@ diffusers/
 qawi.py
 sandbox.py
 dream.sh
+*.pyc
