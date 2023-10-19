@@ -12,3 +12,6 @@ qawi.py
 sandbox.py
 dream.sh
 *.pyc
+logs/
+custom_distilgpt2/
+*.txt
