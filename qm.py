@@ -3,6 +3,8 @@ import itertools
 import numpy as np
 import torch, torch.nn as nn, torch.optim as optim
 from qiskit import Aer, QuantumCircuit, transpile, assemble, execute
+from pathlib import Path
+
 
 log = logging.getLogger(__name__)
 
@@ -15,7 +17,7 @@ class QcDSL:
         self.dsl = dsl
 
     def new_qc_from_dsl(self, dsl, argvals):
-        qc = QuantumCircuit(self.C["in"] - 1)
+        qc = QuantumCircuit(self.C["in"] - 1)  # -1 for circuit identifier
 
         for line in dsl.splitlines():
             line = line.strip()
@@ -58,16 +60,18 @@ class QcDSL:
 class QcNet(nn.Module):
     def __init__(self, C):
         super(QcNet, self).__init__()
-        self.fc1 = nn.Linear(C["in"], 16)
-        self.fc2 = nn.Linear(16, 32)
-        self.fc3 = nn.Linear(32, 16)
-        self.fc4 = nn.Linear(16, C["out"])
+        self.fc1 = nn.Linear(C["in"], 32)
+        self.fc2 = nn.Linear(32, 64)
+        self.fc3 = nn.Linear(64, 32)
+        self.fc4 = nn.Linear(32, 16)
+        self.fc5 = nn.Linear(16, C["out"])
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
         x = torch.relu(self.fc2(x))
         x = torch.relu(self.fc3(x))
-        return torch.softmax(self.fc4(x), dim=1)
+        x = torch.relu(self.fc4(x))
+        return torch.softmax(self.fc5(x), dim=1)
 
 
 class QcNetTrainer:
@@ -92,7 +96,7 @@ class QcNetTrainer:
     def add_dsl(self, dsl):
         self._qcircuits.append(QcDSL(dsl, self.C))
 
-    def train(self, inputs, labels, epochs=100):
+    def train(self, inputs, labels, epochs=1000):
         for epoch in range(epochs):
             self.optimizer.zero_grad()
             outputs = self.model(inputs)
@@ -153,7 +157,7 @@ class QcNetTrainer:
 
         return inputs, labels
 
-    def gen_and_train_over_all_circuits(self, linspaces, epochs=500):
+    def gen_and_train_over_all_circuits(self, linspaces, epochs=2500):
         """
         Generate data for all circuits and train the model over all circuits.
 
@@ -166,15 +170,17 @@ class QcNetTrainer:
         inputs_list = []
 
         for circuit in range(len(self.circuits)):
-            log.info(f"Generating data and training over circuit {circuit}")
+            log.info(f"Generating training data over circuit {circuit}")
             inputs, labels = self.gen_data_from_linspace(circuit, linspaces)
             # TODO: add circuit as it's own feature so network can start multiplexing it's predictions
             inputs_list.append((inputs, labels))
 
-        # reorder so that we train over all circuits in each epoch
-        inputs_list = list(zip(*inputs_list))
-        for inputs, labels in zip(*inputs_list):
-            self.train(inputs, labels, epochs=epochs)
+        # interlace inputs and labels
+        inputs = torch.cat([i[0] for i in inputs_list])
+        labels = torch.cat([i[1] for i in inputs_list])
+
+        # train
+        self.train(inputs, labels, epochs=epochs)
 
     def infer_input_over_all_circuits(self, **inputs):
         """
@@ -213,20 +219,16 @@ def main():
     """
     )
 
-    # inputs & labels
-    inputs, labels = T.gen_data_from_linspace(
-        0,
-        [np.linspace(0, 2 * np.pi), np.linspace(0, 2 * np.pi)],
-    )
+    if Path("model.pt").exists() and input("load?").lower() == "y":
+        T.model.load_state_dict(torch.load("model.pt"))
+    log.info(T.model)
 
-    # train & infer
-    T.train(inputs, labels)
-    T.infer(0, theta1=np.pi / 4, theta2=np.pi / 3)
-
-    # Strangely broken: (Requires an extra feature input commented out in a few places above as well.)
     T.gen_and_train_over_all_circuits(
         [np.linspace(0, 2 * np.pi), np.linspace(0, 2 * np.pi)],
+        epochs=5000,
     )
+
+    torch.save(T.model.state_dict(), "model.pt")
 
     T.infer_input_over_all_circuits(theta1=np.pi / 4, theta2=np.pi / 3)
 
