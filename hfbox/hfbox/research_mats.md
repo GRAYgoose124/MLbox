@@ -60,19 +60,12 @@ https://arxiv.org/abs/2203.11171
 https://arxiv.org/abs/2210.06710
 # #
 https://arxiv.org/abs/2303.16416
-- Key take away: BERTs are generally specialized, but ChatGPT performs well zero-shot on all tasks.
-  - https://arxiv.org/abs/2307.12114
+- https://arxiv.org/abs/2307.12114
 - https://arxiv.org/abs/2305.04928
 - https://arxiv.org/abs/2305.03253
 - https://arxiv.org/abs/2306.06427
 
 https://arxiv.org/abs/2308.05342
-
-I think the key takeaway is you can't compare LLMs which can be zero/few shot and capable of a huge array of tasks to BERTs which are fine-tuned for a specific task and require annotations, etc. ChatGPT will likely perform as well as gpt2 or bert for the tasks you had mentioned if you apply the concepts like CoT("plan your steps out loud")/prompt engineering(user biases the model)/few-shotting(user prompts the model with "training pairs"). GPT3 and esp 4 will make GPT2 feel hollow if you spend some time turing testing it, but it's also much harder to control LLMs. (I'd say we're engineering a lot of interesting "executive control" tooling as a result and with these more complex pipelines being produced the sky is the limit.) 
-
-It's very likely any one thing a LLM does, a model .1% it's size can be trained to do better. But the fact we can use an LLM on a variety of tasks and it's performance is competitive with a model fine-tuned for that task is a huge win. 
-
-some keywords: distillation, quantization, zero shot, few shot, instruction tuning, fine-tuning, chain of thought, prompt engineering, prompt 
 
 
 https://arxiv.org/abs/2308.09729
@@ -87,3 +80,5 @@ https://arxiv.org/abs/2308.12488
 https://arxiv.org/abs/2210.01293
 https://arxiv.org/abs/2309.01538
 https://arxiv.org/abs/2305.14869
+
+some keywords: distillation, quantization, zero shot, few shot, instruction tuning, fine-tuning, chain of thought, prompt engineering, prompt 
