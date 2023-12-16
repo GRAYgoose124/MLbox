@@ -10,6 +10,7 @@ from pathlib import Path
 log = logging.getLogger(__name__)
 
 
+# pragma: newfile("dsl.py")
 class QcDSL:
     aer = Aer.get_backend("aer_simulator")
 
@@ -67,6 +68,7 @@ class QcDSL:
         return probs
 
 
+# pragma: newfile("net.py")
 class QcNet(nn.Module):
     def __init__(self, C):
         super(QcNet, self).__init__()
@@ -86,6 +88,7 @@ class QcNet(nn.Module):
         return torch.softmax(self.fc5(x), dim=1)
 
 
+# pragma: newfile("utils.py")
 def file_cache(func):
     """Memoize to/from file based on args using UUID for filename."""
     import hashlib
@@ -109,6 +112,14 @@ def file_cache(func):
     return wrapper
 
 
+def gen_default_feature_set_linspace(n_features, out):
+    feature_sets = [f"theta{n}" for n in range(n_features)]
+    linspaces = [np.linspace(0, 2 * np.pi) for _ in range(n_features)]
+
+    return feature_sets, linspaces, out
+
+
+# pragma: newfile("trainer.py")
 class QcNetTrainer:
     def __init__(self, C):
         # calculate input size from features
@@ -240,6 +251,7 @@ class QcNetTrainer:
             self.infer(circuit, **inputs)
 
 
+# pragma: newfile("manager.py")
 class QcTrainerManager:
     def __init__(self, feature_sets, outs):
         self.trainers = [
@@ -273,79 +285,20 @@ class QcTrainerManager:
                 trainer.model.load_state_dict(torch.load(model_path))
 
 
-def gen_default_feature_set_linspace(n_features, out):
-    feature_sets = [f"theta{n}" for n in range(n_features)]
-    linspaces = [np.linspace(0, 2 * np.pi) for _ in range(n_features)]
-
-    return feature_sets, linspaces, out
-
-
-qubits1 = []
-qubits2 = [
-    """
-ry, theta1, 0
-ry, theta2, 1
-cx, 0, 1
-measure_all
-""",
-    """
-h, 0
-ry, theta1, 1
-cx, 0, 1
-ry, theta2, 0
-cx, 1, 0
-measure_all
-""",
-    #     """
-    # random_circuit, _in, _out
-    # measure_all
-    # """,
-]
-qubits3 = []
-
-
-# def main():
-#     logging.basicConfig(level=logging.INFO, format="%(message)s")
-#     logging.getLogger("qiskit").setLevel(logging.WARNING)
-#     logging.getLogger("stevedore").setLevel(logging.WARNING)
-
-#     feature_sets, linspaces_list, outs = gen_default_feature_set_linspace(2, 4)
-#     feature_sets, linspaces_list, outs = [feature_sets], [linspaces_list], [outs]
-
-#     manager = QcTrainerManager(feature_sets, outs)
-
-#     # Add DSL groups to corresponding trainers
-#     manager.add_dsl_group(qubits2, 0)
-
-#     # Load models (optional, if needed)
-#     # manager.load_models()
-
-#     manager.train_all(linspaces_list, epochs=5000)
-
-#     # Save models
-#     manager.save_models()
-
-#     # Run inference
-#     manager.infer_all(theta1=np.pi / 4, theta2=np.pi / 3)
-
-
-def main():
+if __name__ == "__main__":
     # logging
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     logging.getLogger("qiskit").setLevel(logging.WARNING)
     logging.getLogger("stevedore").setLevel(logging.WARNING)
 
-    # init
-    T = QcNetTrainer({"features": ["theta1", "theta2"], "out": 4})
-    T.add_dsl(
+    qubits1 = []
+    qubits2 = [
         """
     ry, theta1, 0
     ry, theta2, 1
     cx, 0, 1
     measure_all
-    """
-    )
-    T.add_dsl(
+    """,
         """
     h, 0
     ry, theta1, 1
@@ -353,8 +306,18 @@ def main():
     ry, theta2, 0
     cx, 1, 0
     measure_all
-    """
-    )
+    """,
+        #     """
+        # random_circuit, _in, _out
+        # measure_all
+        # """,
+    ]
+    qubits3 = []
+
+    # init
+    T = QcNetTrainer({"features": ["theta1", "theta2"], "out": 4})
+    for c in qubits2:
+        T.add_dsl(c)
 
     if Path("model.pt").exists() and input("load?").lower() == "y":
         T.model.load_state_dict(torch.load("model.pt"))
@@ -368,7 +331,3 @@ def main():
     torch.save(T.model.state_dict(), "model.pt")
 
     T.infer_input_over_all_circuits(theta1=np.pi / 4, theta2=np.pi / 3)
-
-
-if __name__ == "__main__":
-    main()
